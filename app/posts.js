@@ -5,6 +5,8 @@ const nanoid = require('nanoid');
 const config = require('../config');
 const auth = require('../middleware/auth');
 
+const Comment = require('../models/Comment');
+
 const Post = require('../models/Post');
 
 const storage = multer.diskStorage({
@@ -22,8 +24,19 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
     Post.find().populate('user').sort({datetime: 'desc'})
-        .then(posts => res.send(posts))
-        .catch(() => res.sendStatus(500));
+        .then(result => {
+            const posts = result;
+            Promise.all(posts.map((post) => {
+                return Comment.countDocuments({post: post._id}).then((count) => {
+                    post.count = count;
+                })
+            }))
+                .then(() => {
+                    res.send(posts);
+                })
+                .catch(() => res.sendStatus(500));
+        });
+
 });
 
 router.get('/:id', (req, res) => {

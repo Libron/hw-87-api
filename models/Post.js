@@ -30,7 +30,8 @@ const PostSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
+   count: Number
 });
 
 const Post = mongoose.model('Post', PostSchema);

@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
 const config = require('./config');
+const library = require('./library');
+const loremIpsum = require("lorem-ipsum").loremIpsum;
 
-const Product = require('./models/Product');
-const Category = require('./models/Category');
+const Post = require('./models/Post');
+const Comment = require('./models/Comment');
+const User = require('./models/User');
 
 const run = async () => {
   await mongoose.connect(config.dbUrl, config.mongoOptions);
@@ -15,26 +18,52 @@ const run = async () => {
     await collection.drop();
   }
 
-  const [cpus, hdds] = await Category.create(
-    {title: 'CPUs', description: 'Central Processing Units'},
-    {title: 'HDDs', description: 'Hard Disk Drives'}
+  const pictures = ['f1.jpg', 'f2.png', 'f3.png', 'f4.jpg', null];
+
+  const generateRandomPosts = (qty) => {
+      const posts = [];
+      for (let i = 0; i < qty; i++) {
+          posts.push({
+              title: loremIpsum(),
+              description: loremIpsum(),
+              datetime: `2019-04-${library.getRndInteger(10, 30)}T14:${library.getRndInteger(10, 59)}:54.362Z`,
+              image: library.random(pictures),
+              user: library.random(users)._id
+          });
+      }
+      return posts;
+  };
+
+    const generateRandomComments = () => {
+        const comments = [];
+        posts.map(post => {
+            const commentsQty = library.getRndInteger(30, 60);
+            for (let i = 0; i < commentsQty; i++) {
+                comments.push({
+                   user:  library.random(users)._id,
+                   post: post._id,
+                   text: loremIpsum(),
+                   datetime: `2019-04-${library.getRndInteger(10, 30)}T14:${library.getRndInteger(10, 59)}:54.362Z`
+                });
+            }
+        });
+
+        return comments;
+    };
+
+  const users = await User.create(
+    {username: 'Anton', password: '$2b$10$5iTBlJMbPpCQ7gfLDRdOUeCHCcmRoqCAKPULeC6i6oP62Z0pKLPgC', token: 'UcHI-deyBak9bW7JGh2Lh'},
+    {username: 'Gena', password: '$2b$10$5iTBlJMbPpCQ7gfLDRdOUeCHCcmRoqCAKPULeC6i6oP62Z0pKLPgC', token: 'UcHI-deyBak9bW7JGh2Lh'},
+    {username: 'Natalia', password: '$2b$10$5iTBlJMbPpCQ7gfLDRdOUeCHCcmRoqCAKPULeC6i6oP62Z0pKLPgC', token: 'UcHI-deyBak9bW7JGh2Lh'},
   );
 
-  await Product.create(
-    {
-      title: 'Intel Core i7',
-      price: 500,
-      description: 'Very cool CPU',
-      category: cpus._id,
-      image: "cpu.jpg"
-    },
-    {
-      title: 'Toshiba 500 GB',
-      price: 60,
-      description: 'A simple HDD',
-      category: hdds._id,
-      image: "hdd.jpg"
-    }
+  const randomPosts = generateRandomPosts(10);
+  const posts = await Post.create(
+      ...randomPosts
+  );
+  const comments = generateRandomComments();
+  await Comment.create(
+      ...comments
   );
 
   return connection.close();
