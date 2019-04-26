@@ -11,12 +11,12 @@ const PostSchema = new Schema({
       type: String,
       validate: {
           validator: function(value) {
-              return !!(value || this.image !== 'null');
+              return !!(value || this.image);
           },
           message: 'Desciprtion'
       }
   },
-  datetime: String,
+  datetime: { type : Date, default: Date.now },
   image: {
       type: String,
       validate: {
@@ -26,7 +26,7 @@ const PostSchema = new Schema({
       },
       message: 'IMAGE'
   },
-  author: {
+  user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true

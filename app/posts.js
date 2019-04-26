@@ -21,35 +21,32 @@ const upload = multer({storage});
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    Post.find().populate('author')
+    Post.find().populate('user').sort({datetime: 'desc'})
         .then(posts => res.send(posts))
         .catch(() => res.sendStatus(500));
 });
 
-// router.get('/:id', (req, res) => {
-//     Post.findById(req.params.id)
-//         .then(product => {
-//             if (product) res.send(product);
-//             else res.sendStatus(404);
-//         })
-//         .catch(() => res.sendStatus(500));
-// });
+router.get('/:id', (req, res) => {
+    Post.findById(req.params.id).populate('user')
+        .then(post => {
+            if (post) res.send(post);
+            else res.sendStatus(404);
+        })
+        .catch(() => res.sendStatus(500));
+});
 
 router.post('/', auth, upload.single('image'), (req, res) => {
     const postData = req.body;
     if (req.file) {
         postData.image = req.file.filename;
+    } else {
+        postData.image = null;
     }
-
-    postData.datetime = new Date().toISOString();
-    postData.author = req.user._id;
-
+    postData.user = req.user._id;
     const post = new Post(postData);
-
     post.save()
         .then(result => res.send(result))
         .catch(error => res.status(400).send(error));
 });
-
 
 module.exports = router;
